@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>노팸 ETF 순위</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f4f5f7; display: flex; justify-content: center; padding: 20px; }
+    .app-container { width: 100%; max-width: 480px; background: #ffffff; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); overflow: hidden; }
+    .header { padding: 20px; display: flex; align-items: baseline; gap: 10px; border-bottom: 1px solid #f0f0f0; }
+    .header h2 { font-size: 1.4rem; color: #111; font-weight: 700; }
+    .header span { color: #888; font-size: 0.9rem; }
+    .list-header { display: flex; padding: 12px 20px; background: #fafbfc; font-size: 0.8rem; color: #666; border-bottom: 1px solid #f0f0f0; }
+    .col-rank { flex: 0.6; text-align: center; }
+    .col-name { flex: 1.5; text-align: left; padding-left: 10px; }
+    .col-stock { flex: 1.2; text-align: left; }
+    .col-return { flex: 1; text-align: right; }
+    .ranking-item { border-bottom: 1px solid #f0f0f0; }
+    .ranking-item:last-child { border-bottom: none; }
+    .main-row { display: flex; align-items: center; padding: 16px 20px; transition: background-color 0.2s ease; }
+    .ranking-item.has-log .main-row { cursor: pointer; }
+    .ranking-item.has-log .main-row:active { background-color: #f9f9f9; }
+    .ranking-item.expanded .main-row { background-color: #f0f7ff; border-left: 4px solid #3498db; padding-left: 16px; }
+    .rank-box { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .rank-num { font-weight: 700; color: #111; font-size: 1.05rem; }
+    .rank-change { font-size: 0.7rem; font-weight: 600; margin-top: 2px; }
+    .main-row .col-name { display: flex; align-items: center; gap: 4px; font-weight: 600; color: #333; padding-left: 10px; font-size: 0.95rem; letter-spacing: -0.5px;}
+    .main-row .col-stock { font-size: 0.95rem; color: #555; }
+    .main-row .col-return { font-weight: 700; font-size: 1rem; }
+    .toggle-icon { font-size: 0.7rem; color: #999; transition: transform 0.3s ease; display: inline-block; margin-left: 2px; }
+    .ranking-item.expanded .toggle-icon { transform: rotate(180deg); color: #3498db; }
+    .log-container { display: none; padding: 20px; background: #f8f9fa; border-top: 1px solid #e1e8ed; }
+    .ranking-item.expanded .log-container { display: block; }
+    .log-header { font-size: 0.9rem; font-weight: 700; margin-bottom: 12px; color: #111; display: flex; justify-content: space-between; }
+    .close-btn { color: #999; cursor: pointer; font-weight: normal; padding: 0 5px; }
+    .log-list { list-style: none; }
+    .log-list li { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #e0e0e0; font-size: 0.9rem; color: #444; }
+    .log-list li:last-child { border-bottom: none; padding-bottom: 0; }
+    .log-date { color: #888; font-size: 0.8rem; margin-right: 8px; }
+    .text-green { color: #2ecc71; }
+    .text-red { color: #e74c3c; }   
+    .text-gray { color: #95a5a6; }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <header class="header">
+      <h2>노팸 ETF</h2>
+      <span id="current-date"></span>
+    </header>
+    <div class="list-header">
+      <div class="col-rank">순위</div>
+      <div class="col-name">투자자</div>
+      <div class="col-stock">보유 종목</div>
+      <div class="col-return">수익률</div>
+    </div>
+    <main id="ranking-list">
+      <div style="text-align:center; padding: 40px; color:#888;">데이터를 불러오는 중입니다...</div>
+    </main>
+  </div>
+
+  <script>
+    // 🔥 여기에 구글 Apps Script에서 발급받은 웹 앱 URL을 붙여넣으세요! 🔥
+    const API_URL = "여기에_URL을_붙여넣으세요"; 
+
+    const listContainer = document.getElementById('ranking-list');
+
+    // 오늘 날짜 세팅 (YY.MM.DD)
+    const today = new Date();
+    const dateString = `${today.getFullYear().toString().slice(2)}.${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`;
+    document.getElementById('current-date').innerText = dateString;
+
+    function getColorClass(val) {
+      if (val.startsWith('+')) return 'text-green';
+      if (val.startsWith('-')) return 'text-red';
+      return 'text-gray';
+    }
+
+    function getRankChangeHTML(change) {
+      if (change > 0) return `<span class="rank-change text-green">▲ ${change}</span>`;
+      if (change < 0) return `<span class="rank-change text-red">▼ ${Math.abs(change)}</span>`;
+      return `<span class="rank-change text-gray">-</span>`;
+    }
+
+    async function fetchRankingData() {
+      if(API_URL === "https://script.google.com/macros/s/AKfycbyCnfZJWEBAFMUh9ijBLZjXikcbwb8gtuUbxL3IcbG-rKf7jHbIpFoK47KFIyUzvRLRAQ/exec") {
+        listContainer.innerHTML = "<div style='text-align:center; padding: 30px; color: red;'>API_URL을 먼저 입력해주세요!</div>";
+        return;
+      }
+
+      try {
+        const response = await fetch(API_URL);
+        let rawData = await response.json();
+
+        // 데이터 가공 및 수익률 계산
+        rawData.forEach(item => {
+          if (!item.purchasePrice || !item.currentPrice) {
+            item.rawReturn = -999;
+            item.returnVal = "0.00";
+            return;
+          }
+          
+          let calcReturn = ((item.currentPrice - item.purchasePrice) / item.purchasePrice) * 100;
+          let sign = calcReturn > 0 ? '+' : '';
+          item.returnVal = sign + calcReturn.toFixed(2);
+          item.rawReturn = calcReturn; 
+          
+          if (!item.logs || typeof item.logs === 'string') item.logs = [];
+        });
+
+        // 수익률 내림차순 정렬
+        rawData.sort((a, b) => b.rawReturn - a.rawReturn);
+
+        // 순위 매기기
+        rawData.forEach((item, index) => {
+          item.rank = index + 1;
+          item.rankChange = 0; // 심화: 변동폭 자동계산은 이전 데이터 저장이 필요하므로 현재는 0
+        });
+
+        renderList(rawData);
+
+      } catch (error) {
+        listContainer.innerHTML = "<div style='text-align:center; padding: 30px; color: red;'>데이터를 불러오는데 실패했습니다. 구글 시트 권한을 확인해주세요.</div>";
+        console.error("Fetch Error:", error);
+      }
+    }
+
+    function renderList(data) {
+      let finalHtml = '';
+      data.forEach((item, index) => {
+        const hasLog = item.logs && item.logs.length > 0;
+        
+        let html = `
+          <div class="ranking-item ${hasLog ? 'has-log' : ''}" id="item-${index}">
+            <div class="main-row">
+              <div class="col-rank rank-box">
+                <span class="rank-num">${item.rank}</span>
+                ${getRankChangeHTML(item.rankChange)}
+              </div>
+              <div class="col-name">${item.name} ${hasLog ? '<span class="toggle-icon">▼</span>' : ''}</div>
+              <div class="col-stock">${item.stock}</div>
+              <div class="col-return ${getColorClass(item.returnVal)}">${item.returnVal}%</div>
+            </div>
+        `;
+
+        if (hasLog) {
+          let logListHtml = item.logs.map(log => `
+            <li>
+              <span><span class="log-date">${log.date}</span>${log.stock}</span>
+              <span class="${getColorClass(log.returnVal)}">${log.returnVal}%</span>
+            </li>
+          `).join('');
+
+          html += `
+            <div class="log-container">
+              <div class="log-header">과거 거래 로그 <span class="close-btn">✕</span></div>
+              <ul class="log-list">${logListHtml}</ul>
+            </div>
+          `;
+        }
+        html += `</div>`;
+        finalHtml += html;
+      });
+
+      listContainer.innerHTML = finalHtml;
+
+      // 로그 아코디언 이벤트 리스너 다시 등록
+      const logItems = document.querySelectorAll('.ranking-item.has-log');
+      logItems.forEach(item => {
+        const mainRow = item.querySelector('.main-row');
+        const closeBtn = item.querySelector('.close-btn');
+
+        mainRow.addEventListener('click', () => item.classList.toggle('expanded'));
+        if (closeBtn) {
+          closeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            item.classList.remove('expanded');
+          });
+        }
+      });
+    }
+
+    // 앱 시작!
+    fetchRankingData();
+  </script>
+</body>
+</html>
