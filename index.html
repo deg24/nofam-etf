@@ -62,8 +62,8 @@
   </div>
 
   <script>
-    // 🔥 여기에 구글 Apps Script에서 발급받은 웹 앱 URL을 붙여넣으세요! 🔥
-    const API_URL = "여기에_URL을_붙여넣으세요"; 
+    // 전달해주신 구글 Apps Script 웹 앱 URL 적용 완료
+    const API_URL = "https://script.google.com/macros/s/AKfycbym2SS_Z2u7Yd7-z88K561P8Uq080m5qFAQsPKc01hMChiLoyQbOu0VNBYVa_NxhLUqtw/exec"; 
 
     const listContainer = document.getElementById('ranking-list');
 
@@ -85,11 +85,6 @@
     }
 
     async function fetchRankingData() {
-      if(API_URL === "https://script.google.com/macros/s/AKfycbyCnfZJWEBAFMUh9ijBLZjXikcbwb8gtuUbxL3IcbG-rKf7jHbIpFoK47KFIyUzvRLRAQ/exec") {
-        listContainer.innerHTML = "<div style='text-align:center; padding: 30px; color: red;'>API_URL을 먼저 입력해주세요!</div>";
-        return;
-      }
-
       try {
         const response = await fetch(API_URL);
         let rawData = await response.json();
@@ -116,7 +111,7 @@
         // 순위 매기기
         rawData.forEach((item, index) => {
           item.rank = index + 1;
-          item.rankChange = 0; // 심화: 변동폭 자동계산은 이전 데이터 저장이 필요하므로 현재는 0
+          item.rankChange = 0; 
         });
 
         renderList(rawData);
