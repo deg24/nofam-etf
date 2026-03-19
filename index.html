@@ -4,13 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>노팸 ETF 순위</title>
-  <style>
+  <meta name="robots" content="noindex, nofollow"> <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f4f5f7; display: flex; justify-content: center; padding: 20px; }
     .app-container { width: 100%; max-width: 480px; background: #ffffff; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); overflow: hidden; }
-    .header { padding: 20px; display: flex; align-items: baseline; gap: 10px; border-bottom: 1px solid #f0f0f0; }
+    
+    /* 헤더 영역 수정: 날짜와 시간을 위아래로 깔끔하게 배치 */
+    .header { padding: 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f0f0f0; }
     .header h2 { font-size: 1.4rem; color: #111; font-weight: 700; }
-    .header span { color: #888; font-size: 0.9rem; }
+    .header-info { display: flex; flex-direction: column; align-items: flex-end; }
+    .header-info #current-date { color: #555; font-size: 0.9rem; font-weight: 600; }
+    .header-info #update-time { color: #999; font-size: 0.75rem; margin-top: 2px; }
+
     .list-header { display: flex; padding: 12px 20px; background: #fafbfc; font-size: 0.8rem; color: #666; border-bottom: 1px solid #f0f0f0; }
     .col-rank { flex: 0.6; text-align: center; }
     .col-name { flex: 1.5; text-align: left; padding-left: 10px; }
@@ -48,7 +53,9 @@
   <div class="app-container">
     <header class="header">
       <h2>노팸 ETF</h2>
-      <span id="current-date"></span>
+      <div class="header-info">
+        <span id="current-date"></span>
+        <span id="update-time">불러오는 중...</span> </div>
     </header>
     <div class="list-header">
       <div class="col-rank">순위</div>
@@ -62,7 +69,7 @@
   </div>
 
   <script>
-    // 전달해주신 구글 Apps Script 웹 앱 URL 적용 완료
+    // 🔥 여기에 구글 Apps Script 웹 앱 URL을 붙여넣으세요! 🔥
     const API_URL = "https://script.google.com/macros/s/AKfycbym2SS_Z2u7Yd7-z88K561P8Uq080m5qFAQsPKc01hMChiLoyQbOu0VNBYVa_NxhLUqtw/exec"; 
 
     const listContainer = document.getElementById('ranking-list');
@@ -114,10 +121,17 @@
           item.rankChange = 0; 
         });
 
+        // 화면 그리기
         renderList(rawData);
+
+        // 🔥 갱신 시간 표시 업데이트 🔥
+        const now = new Date();
+        const timeString = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')} 갱신`;
+        document.getElementById('update-time').innerText = timeString;
 
       } catch (error) {
         listContainer.innerHTML = "<div style='text-align:center; padding: 30px; color: red;'>데이터를 불러오는데 실패했습니다. 구글 시트 권한을 확인해주세요.</div>";
+        document.getElementById('update-time').innerText = "갱신 실패";
         console.error("Fetch Error:", error);
       }
     }
