@@ -68,8 +68,8 @@
   </div>
 
   <script>
-    // 🔥 여기에 '새 배포'로 발급받은 새로운 API_URL을 넣으세요! 🔥
-    const API_URL = "/api/ranking";
+    // 🔥 Vercel 서버리스 API 주소 적용 완료 🔥
+    const API_URL = "/api/ranking"; 
 
     const listContainer = document.getElementById('ranking-list');
 
@@ -90,30 +90,43 @@
     }
 
     async function fetchRankingData() {
-      if(API_URL === "여기에_새로운_URL을_붙여넣으세요") {
-        listContainer.innerHTML = "<div style='text-align:center; padding: 30px; color: red;'>API_URL을 먼저 입력해주세요!</div>";
-        return;
-      }
-
       try {
         const response = await fetch(API_URL);
         let rawData = await response.json();
 
-        // 실시간 수익률 계산 (순위에는 영향 주지 않음)
+        // 1. 실시간 수익률 계산 및 '어제 순위(기준점)' 백업
         rawData.forEach(item => {
           if (!item.purchasePrice || !item.currentPrice) {
+            item.rawReturn = -999;
             item.returnVal = "0.00";
+            item.oldRank = parseInt(item.rank) || 0;
             return;
           }
           let calcReturn = ((item.currentPrice - item.purchasePrice) / item.purchasePrice) * 100;
           let sign = calcReturn > 0 ? '+' : '';
           item.returnVal = sign + calcReturn.toFixed(2);
+          item.rawReturn = calcReturn; 
+          
+          // 시트에 저장되어 있는 '오전 6시 기준 순위'를 oldRank로 저장
+          item.oldRank = parseInt(item.rank) || 0;
           
           if (!item.logs || typeof item.logs === 'string') item.logs = [];
         });
 
-        // 🔥 여기가 핵심! 구글 시트가 아침 6시에 박아둔 '고정 순위(rank)'를 기준으로 화면을 줄세웁니다.
-        rawData.sort((a, b) => a.rank - b.rank);
+        // 2. 실시간 수익률 기준으로 내림차순 정렬 (새로고침 시 역전 바로 반영!)
+        rawData.sort((a, b) => b.rawReturn - a.rawReturn);
+
+        // 3. 실시간 순위 매기기 및 변동폭(rankChange) 계산
+        rawData.forEach((item, index) => {
+          item.currentRank = index + 1; // 화면에 띄울 진짜 실시간 순위
+          
+          if (item.oldRank === 0) {
+            item.rankChange = 0;
+          } else {
+            // 어제 등수 - 오늘 실시간 등수 = 상승/하락폭
+            item.rankChange = item.oldRank - item.currentRank; 
+          }
+        });
 
         renderList(rawData);
 
@@ -122,7 +135,7 @@
         document.getElementById('update-time').innerText = timeString;
 
       } catch (error) {
-        listContainer.innerHTML = "<div style='text-align:center; padding: 30px; color: red;'>데이터를 불러오는데 실패했습니다.</div>";
+        listContainer.innerHTML = "<div style='text-align:center; padding: 30px; color: red;'>데이터를 불러오는데 실패했습니다. 서버 상태를 확인해주세요.</div>";
         document.getElementById('update-time').innerText = "갱신 실패";
         console.error("Fetch Error:", error);
       }
@@ -137,8 +150,8 @@
           <div class="ranking-item ${hasLog ? 'has-log' : ''}" id="item-${index}">
             <div class="main-row">
               <div class="col-rank rank-box">
-                <span class="rank-num">${item.rank || '-'}</span>
-                ${getRankChangeHTML(item.rankChange || 0)}
+                <span class="rank-num">${item.currentRank || '-'}</span>
+                ${getRankChangeHTML(item.rankChange)}
               </div>
               <div class="col-name">${item.name} ${hasLog ? '<span class="toggle-icon">▼</span>' : ''}</div>
               <div class="col-stock">${item.stock}</div>
