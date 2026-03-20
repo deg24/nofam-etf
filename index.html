@@ -44,7 +44,8 @@
     
     .app-container { width: 100%; max-width: 480px; background: var(--container-bg); border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); overflow: hidden; transition: background-color 0.3s ease; }
     
-    .header { padding: 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); }
+    /* 🔥 헤더 상하 여백 축소 */
+    .header { padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); }
     .header-left { display: flex; align-items: center; gap: 8px; }
     .header h2 { font-size: 1.4rem; color: var(--text-main); font-weight: 700; }
     
@@ -55,7 +56,8 @@
     .header-info #current-date { color: var(--text-sub); font-size: 0.9rem; font-weight: 600; }
     .header-info #update-time { color: var(--text-muted); font-size: 0.75rem; margin-top: 2px; }
     
-    .list-header { display: flex; padding: 12px 20px; background: var(--header-bg); font-size: 0.8rem; color: var(--text-sub); border-bottom: 1px solid var(--border-color); }
+    /* 🔥 리스트 헤더 상하 여백 축소 */
+    .list-header { display: flex; padding: 10px 20px; background: var(--header-bg); font-size: 0.8rem; color: var(--text-sub); border-bottom: 1px solid var(--border-color); }
     
     .col-rank { flex: 0.6; text-align: center; white-space: nowrap; }
     .col-name { flex: 1.4; text-align: left; padding-left: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -88,7 +90,9 @@
     }
 
     .ranking-item:last-child { border-bottom: none; }
-    .main-row { display: flex; align-items: center; padding: 16px 20px; transition: background-color 0.2s ease; cursor: pointer; }
+    
+    /* 🔥 핵심 행(Row) 상하 여백 축소 (16px -> 12px) */
+    .main-row { display: flex; align-items: center; padding: 12px 20px; transition: background-color 0.2s ease; cursor: pointer; }
     .main-row:active { background-color: var(--item-hover); }
     
     .ranking-item.expanded .main-row { 
@@ -107,12 +111,14 @@
     .toggle-icon { font-size: 0.7rem; color: var(--text-muted); transition: transform 0.3s ease; display: inline-block; margin-left: 2px; }
     .ranking-item.expanded .toggle-icon { transform: rotate(180deg); color: var(--expand-border); }
     
-    .log-container { display: none; padding: 20px; background: var(--log-bg); border-top: 1px solid var(--log-border); }
+    /* 🔥 로그 컨테이너 여백 축소 */
+    .log-container { display: none; padding: 16px 20px; background: var(--log-bg); border-top: 1px solid var(--log-border); }
     .ranking-item.expanded .log-container { display: block; }
-    .log-header { font-size: 0.9rem; font-weight: 700; margin-bottom: 12px; color: var(--text-main); display: flex; justify-content: space-between; }
+    .log-header { font-size: 0.9rem; font-weight: 700; margin-bottom: 10px; color: var(--text-main); display: flex; justify-content: space-between; }
     .close-btn { color: var(--text-muted); cursor: pointer; font-weight: normal; padding: 0 5px; }
     .log-list { list-style: none; }
-    .log-list li { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed var(--border-color); font-size: 0.9rem; color: var(--text-main); }
+    /* 🔥 로그 리스트 아이템 여백 축소 */
+    .log-list li { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed var(--border-color); font-size: 0.9rem; color: var(--text-main); }
     .log-list li:last-child { border-bottom: none; padding-bottom: 0; }
     .log-date { color: var(--text-muted); font-size: 0.8rem; margin-right: 8px; }
     
@@ -242,7 +248,6 @@
         if (item.returnVal.startsWith('+')) trendClass = 'trend-up';
         else if (item.returnVal.startsWith('-')) trendClass = 'trend-down';
         
-        // 🔥 이제 로그가 있든 없든 무조건 누를 수 있는 클래스가 적용됩니다!
         let html = `
           <div class="ranking-item expandable ${trendClass}" id="item-${index}">
             <div class="main-row">
@@ -259,7 +264,6 @@
               <ul class="log-list">
         `;
 
-        // 로그가 있으면 출력하고, 없으면 안내 문구 출력
         if (hasLog) {
           html += item.logs.map(log => `
             <li>
@@ -268,7 +272,6 @@
             </li>
           `).join('');
         } else {
-          // 🔥 텅 빈 박스 방지용 안내 문구
           html += `<li style="justify-content: center; color: var(--text-muted); border: none; font-size: 0.8rem;">아직 과거 거래 내역이 없습니다.</li>`;
         }
 
@@ -282,7 +285,6 @@
 
       listContainer.innerHTML = finalHtml;
 
-      // 🔥 이제 조건 없이 모든 아이템에 클릭 이벤트(아코디언)를 달아줍니다.
       const logItems = document.querySelectorAll('.ranking-item');
       logItems.forEach(item => {
         const mainRow = item.querySelector('.main-row');
