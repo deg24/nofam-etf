@@ -6,41 +6,96 @@
   <title>노팸 ETF 순위</title>
   <meta name="robots" content="noindex, nofollow">
   <style>
+    /* 🔥 1. CSS 변수 설정 (라이트 모드 기본 색상) */
+    :root {
+      --bg-color: #f4f5f7;
+      --container-bg: #ffffff;
+      --text-main: #111111;
+      --text-sub: #555555;
+      --text-muted: #888888;
+      --border-color: #f0f0f0;
+      --header-bg: #fafbfc;
+      --item-hover: #f9f9f9;
+      --expanded-bg: #f0f7ff;
+      --expanded-border: #3498db;
+      --log-bg: #f8f9fa;
+      --log-border: #e1e8ed;
+    }
+
+    /* 🔥 2. 다크 모드일 때 덮어쓸 색상들 */
+    body.dark-mode {
+      --bg-color: #121212;
+      --container-bg: #1e1e1e;
+      --text-main: #f1f1f1;
+      --text-sub: #aaaaaa;
+      --text-muted: #777777;
+      --border-color: #333333;
+      --header-bg: #252525;
+      --item-hover: #2a2a2a;
+      --expanded-bg: #2a3b4c;
+      --expanded-border: #3498db;
+      --log-bg: #222222;
+      --log-border: #444444;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f4f5f7; display: flex; justify-content: center; padding: 20px; }
-    .app-container { width: 100%; max-width: 480px; background: #ffffff; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); overflow: hidden; }
-    .header { padding: 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f0f0f0; }
-    .header h2 { font-size: 1.4rem; color: #111; font-weight: 700; }
+    
+    /* 부드러운 색상 전환 애니메이션 추가 */
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+      background-color: var(--bg-color); 
+      color: var(--text-main);
+      display: flex; justify-content: center; padding: 20px; 
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    
+    .app-container { width: 100%; max-width: 480px; background: var(--container-bg); border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); overflow: hidden; transition: background-color 0.3s ease; }
+    
+    .header { padding: 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); }
+    .header-left { display: flex; align-items: center; gap: 8px; }
+    .header h2 { font-size: 1.4rem; color: var(--text-main); font-weight: 700; }
+    
+    /* 다크모드 토글 버튼 디자인 */
+    #theme-toggle { background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 4px; border-radius: 50%; transition: background-color 0.2s; }
+    #theme-toggle:hover { background-color: var(--item-hover); }
+
     .header-info { display: flex; flex-direction: column; align-items: flex-end; }
-    .header-info #current-date { color: #555; font-size: 0.9rem; font-weight: 600; }
-    .header-info #update-time { color: #999; font-size: 0.75rem; margin-top: 2px; }
-    .list-header { display: flex; padding: 12px 20px; background: #fafbfc; font-size: 0.8rem; color: #666; border-bottom: 1px solid #f0f0f0; }
+    .header-info #current-date { color: var(--text-sub); font-size: 0.9rem; font-weight: 600; }
+    .header-info #update-time { color: var(--text-muted); font-size: 0.75rem; margin-top: 2px; }
+    
+    .list-header { display: flex; padding: 12px 20px; background: var(--header-bg); font-size: 0.8rem; color: var(--text-sub); border-bottom: 1px solid var(--border-color); }
     .col-rank { flex: 0.6; text-align: center; }
     .col-name { flex: 1.5; text-align: left; padding-left: 10px; }
     .col-stock { flex: 1.2; text-align: left; }
     .col-return { flex: 1; text-align: right; }
-    .ranking-item { border-bottom: 1px solid #f0f0f0; }
+    
+    .ranking-item { border-bottom: 1px solid var(--border-color); }
     .ranking-item:last-child { border-bottom: none; }
     .main-row { display: flex; align-items: center; padding: 16px 20px; transition: background-color 0.2s ease; }
     .ranking-item.has-log .main-row { cursor: pointer; }
-    .ranking-item.has-log .main-row:active { background-color: #f9f9f9; }
-    .ranking-item.expanded .main-row { background-color: #f0f7ff; border-left: 4px solid #3498db; padding-left: 16px; }
+    .ranking-item.has-log .main-row:active { background-color: var(--item-hover); }
+    .ranking-item.expanded .main-row { background-color: var(--expanded-bg); border-left: 4px solid var(--expanded-border); padding-left: 16px; }
+    
     .rank-box { display: flex; flex-direction: column; align-items: center; justify-content: center; }
-    .rank-num { font-weight: 700; color: #111; font-size: 1.05rem; }
+    .rank-num { font-weight: 700; color: var(--text-main); font-size: 1.05rem; }
     .rank-change { font-size: 0.7rem; font-weight: 600; margin-top: 2px; }
-    .main-row .col-name { display: flex; align-items: center; gap: 4px; font-weight: 600; color: #333; padding-left: 10px; font-size: 0.95rem; letter-spacing: -0.5px;}
-    .main-row .col-stock { font-size: 0.95rem; color: #555; }
+    .main-row .col-name { display: flex; align-items: center; gap: 4px; font-weight: 600; color: var(--text-main); padding-left: 10px; font-size: 0.95rem; letter-spacing: -0.5px;}
+    .main-row .col-stock { font-size: 0.95rem; color: var(--text-sub); }
     .main-row .col-return { font-weight: 700; font-size: 1rem; }
-    .toggle-icon { font-size: 0.7rem; color: #999; transition: transform 0.3s ease; display: inline-block; margin-left: 2px; }
-    .ranking-item.expanded .toggle-icon { transform: rotate(180deg); color: #3498db; }
-    .log-container { display: none; padding: 20px; background: #f8f9fa; border-top: 1px solid #e1e8ed; }
+    
+    .toggle-icon { font-size: 0.7rem; color: var(--text-muted); transition: transform 0.3s ease; display: inline-block; margin-left: 2px; }
+    .ranking-item.expanded .toggle-icon { transform: rotate(180deg); color: var(--expanded-border); }
+    
+    .log-container { display: none; padding: 20px; background: var(--log-bg); border-top: 1px solid var(--log-border); }
     .ranking-item.expanded .log-container { display: block; }
-    .log-header { font-size: 0.9rem; font-weight: 700; margin-bottom: 12px; color: #111; display: flex; justify-content: space-between; }
-    .close-btn { color: #999; cursor: pointer; font-weight: normal; padding: 0 5px; }
+    .log-header { font-size: 0.9rem; font-weight: 700; margin-bottom: 12px; color: var(--text-main); display: flex; justify-content: space-between; }
+    .close-btn { color: var(--text-muted); cursor: pointer; font-weight: normal; padding: 0 5px; }
     .log-list { list-style: none; }
-    .log-list li { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #e0e0e0; font-size: 0.9rem; color: #444; }
+    .log-list li { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed var(--border-color); font-size: 0.9rem; color: var(--text-main); }
     .log-list li:last-child { border-bottom: none; padding-bottom: 0; }
-    .log-date { color: #888; font-size: 0.8rem; margin-right: 8px; }
+    .log-date { color: var(--text-muted); font-size: 0.8rem; margin-right: 8px; }
+    
+    /* 수익률 색상 (다크/라이트 공통) */
     .text-green { color: #2ecc71; }
     .text-red { color: #e74c3c; }   
     .text-gray { color: #95a5a6; }
@@ -50,7 +105,10 @@
 
   <div class="app-container">
     <header class="header">
-      <h2>노팸 ETF</h2>
+      <div class="header-left">
+        <h2>노팸 ETF</h2>
+        <button id="theme-toggle">🌙</button>
+      </div>
       <div class="header-info">
         <span id="current-date"></span>
         <span id="update-time">불러오는 중...</span>
@@ -63,13 +121,36 @@
       <div class="col-return">실시간 수익률</div>
     </div>
     <main id="ranking-list">
-      <div style="text-align:center; padding: 40px; color:#888;">데이터를 불러오는 중입니다...</div>
+      <div style="text-align:center; padding: 40px; color:var(--text-muted);">데이터를 불러오는 중입니다...</div>
     </main>
   </div>
 
   <script>
-    // 🔥 Vercel 서버리스 API 주소 적용 완료 🔥
     const API_URL = "/api/ranking"; 
+
+    // 🔥 다크모드 로직 시작 🔥
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const body = document.body;
+
+    // 브라우저에 저장된 테마 확인 (이전에 다크모드를 켰었는지 기억)
+    if (localStorage.getItem('nofam-theme') === 'dark') {
+      body.classList.add('dark-mode');
+      themeToggleBtn.innerText = '☀️';
+    }
+
+    // 버튼 클릭 이벤트
+    themeToggleBtn.addEventListener('click', () => {
+      body.classList.toggle('dark-mode');
+      
+      if (body.classList.contains('dark-mode')) {
+        localStorage.setItem('nofam-theme', 'dark');
+        themeToggleBtn.innerText = '☀️';
+      } else {
+        localStorage.setItem('nofam-theme', 'light');
+        themeToggleBtn.innerText = '🌙';
+      }
+    });
+    // 🔥 다크모드 로직 끝 🔥
 
     const listContainer = document.getElementById('ranking-list');
 
@@ -94,7 +175,6 @@
         const response = await fetch(API_URL);
         let rawData = await response.json();
 
-        // 1. 실시간 수익률 계산 및 '어제 순위(기준점)' 백업
         rawData.forEach(item => {
           if (!item.purchasePrice || !item.currentPrice) {
             item.rawReturn = -999;
@@ -107,23 +187,19 @@
           item.returnVal = sign + calcReturn.toFixed(2);
           item.rawReturn = calcReturn; 
           
-          // 시트에 저장되어 있는 '오전 6시 기준 순위'를 oldRank로 저장
           item.oldRank = parseInt(item.rank) || 0;
           
           if (!item.logs || typeof item.logs === 'string') item.logs = [];
         });
 
-        // 2. 실시간 수익률 기준으로 내림차순 정렬 (새로고침 시 역전 바로 반영!)
         rawData.sort((a, b) => b.rawReturn - a.rawReturn);
 
-        // 3. 실시간 순위 매기기 및 변동폭(rankChange) 계산
         rawData.forEach((item, index) => {
-          item.currentRank = index + 1; // 화면에 띄울 진짜 실시간 순위
+          item.currentRank = index + 1; 
           
           if (item.oldRank === 0) {
             item.rankChange = 0;
           } else {
-            // 어제 등수 - 오늘 실시간 등수 = 상승/하락폭
             item.rankChange = item.oldRank - item.currentRank; 
           }
         });
@@ -135,7 +211,7 @@
         document.getElementById('update-time').innerText = timeString;
 
       } catch (error) {
-        listContainer.innerHTML = "<div style='text-align:center; padding: 30px; color: red;'>데이터를 불러오는데 실패했습니다. 서버 상태를 확인해주세요.</div>";
+        listContainer.innerHTML = `<div style='text-align:center; padding: 30px; color: var(--text-muted);'>데이터를 불러오는데 실패했습니다. 서버 상태를 확인해주세요.</div>`;
         document.getElementById('update-time').innerText = "갱신 실패";
         console.error("Fetch Error:", error);
       }
