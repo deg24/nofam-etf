@@ -6,7 +6,7 @@
   <title>노팸 ETF 순위</title>
   <meta name="robots" content="noindex, nofollow">
   <style>
-    /* 🔥 1. CSS 변수 설정 (라이트 모드 기본 색상) */
+    /* 🔥 1. CSS 변수 설정 (라이트 모드) */
     :root {
       --bg-color: #f4f5f7;
       --container-bg: #ffffff;
@@ -22,7 +22,7 @@
       --log-border: #e1e8ed;
     }
 
-    /* 🔥 2. 다크 모드일 때 덮어쓸 색상들 */
+    /* 🔥 2. 다크 모드 덮어쓰기 */
     body.dark-mode {
       --bg-color: #121212;
       --container-bg: #1e1e1e;
@@ -40,7 +40,6 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     
-    /* 부드러운 색상 전환 애니메이션 추가 */
     body { 
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
       background-color: var(--bg-color); 
@@ -55,7 +54,6 @@
     .header-left { display: flex; align-items: center; gap: 8px; }
     .header h2 { font-size: 1.4rem; color: var(--text-main); font-weight: 700; }
     
-    /* 다크모드 토글 버튼 디자인 */
     #theme-toggle { background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 4px; border-radius: 50%; transition: background-color 0.2s; }
     #theme-toggle:hover { background-color: var(--item-hover); }
 
@@ -95,10 +93,10 @@
     .log-list li:last-child { border-bottom: none; padding-bottom: 0; }
     .log-date { color: var(--text-muted); font-size: 0.8rem; margin-right: 8px; }
     
-    /* 수익률 색상 (다크/라이트 공통) */
-    .text-green { color: #2ecc71; }
-    .text-red { color: #e74c3c; }   
-    .text-gray { color: #95a5a6; }
+    /* 🔥 3. 수익률 색상 (한국장 스타일 패치: +빨강, -파랑) */
+    .text-up { color: #e74c3c; }   /* 강렬한 빨간색 */
+    .text-down { color: #3498db; } /* 시원한 파란색 */
+    .text-flat { color: #95a5a6; } /* 보합 회색 */
   </style>
 </head>
 <body>
@@ -128,17 +126,15 @@
   <script>
     const API_URL = "/api/ranking"; 
 
-    // 🔥 다크모드 로직 시작 🔥
+    // 다크모드 로직
     const themeToggleBtn = document.getElementById('theme-toggle');
     const body = document.body;
 
-    // 브라우저에 저장된 테마 확인 (이전에 다크모드를 켰었는지 기억)
     if (localStorage.getItem('nofam-theme') === 'dark') {
       body.classList.add('dark-mode');
       themeToggleBtn.innerText = '☀️';
     }
 
-    // 버튼 클릭 이벤트
     themeToggleBtn.addEventListener('click', () => {
       body.classList.toggle('dark-mode');
       
@@ -150,7 +146,6 @@
         themeToggleBtn.innerText = '🌙';
       }
     });
-    // 🔥 다크모드 로직 끝 🔥
 
     const listContainer = document.getElementById('ranking-list');
 
@@ -158,16 +153,18 @@
     const dateString = `${today.getFullYear().toString().slice(2)}.${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`;
     document.getElementById('current-date').innerText = dateString;
 
+    // 🔥 한국장 스타일 색상 판별 함수 (+는 up(빨강), -는 down(파랑))
     function getColorClass(val) {
-      if (val.startsWith('+')) return 'text-green';
-      if (val.startsWith('-')) return 'text-red';
-      return 'text-gray';
+      if (val.startsWith('+')) return 'text-up';
+      if (val.startsWith('-')) return 'text-down';
+      return 'text-flat';
     }
 
+    // 🔥 화살표와 순위 변동 색상 적용
     function getRankChangeHTML(change) {
-      if (change > 0) return `<span class="rank-change text-green">▲ ${change}</span>`;
-      if (change < 0) return `<span class="rank-change text-red">▼ ${Math.abs(change)}</span>`;
-      return `<span class="rank-change text-gray">-</span>`;
+      if (change > 0) return `<span class="rank-change text-up">▲ ${change}</span>`;
+      if (change < 0) return `<span class="rank-change text-down">▼ ${Math.abs(change)}</span>`;
+      return `<span class="rank-change text-flat">-</span>`;
     }
 
     async function fetchRankingData() {
